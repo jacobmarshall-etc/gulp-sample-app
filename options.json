@@ -1,0 +1,16 @@
+{
+  "header": [
+    "/*!",
+    " * gulp-sample-app",
+    " *",
+    " * @license MIT",
+    " * @author Jacob Marshall <github@jacobmarshall.co>",
+    " */"
+  ],
+  "browsers": [
+    "> 1%",
+    "last 2 versions",
+    "Firefox ESR",
+    "Opera 12.1"
+  ]
+}

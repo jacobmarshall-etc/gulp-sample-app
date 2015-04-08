@@ -1,4 +1,5 @@
 var gulp = require('gulp'),
+    options = require('./options.json'),
     plugins = require('gulp-load-plugins')(),
     through2 = require('through2'),
     browserify = require('browserify'),
@@ -8,7 +9,7 @@ var gulp = require('gulp'),
     notifier = require('node-notifier');
 
 gulp.task('js', function () {
-    gulp.src('./src/main.js')
+    gulp.src('./src/js/main.js')
         .pipe(plugins.jshint())
         .pipe(plugins.jshint.reporter(stylish))
         .pipe(through2.obj(function (file, enc, next) {
@@ -23,8 +24,11 @@ gulp.task('js', function () {
                     next(err, file);
                 });
         }))
+        .pipe(plugins.header(options.header.join('\n') + '\n'))
         .pipe(plugins.sourcemaps.init())
-        .pipe(plugins.uglify())
+        .pipe(plugins.uglify({
+            preserveComments: 'some'
+        }))
         .pipe(plugins.sourcemaps.write('.'))
         .pipe(map(function (file, cb) {
             if (file.jshint && file.jshint.success) {
@@ -42,11 +46,33 @@ gulp.task('js', function () {
             }
             cb(null, file);
         }))
-        .pipe(gulp.dest('./dist'));
+        .pipe(gulp.dest('./dist/js'));
+});
+
+gulp.task('css', function () {
+    gulp.src('./src/css/main.scss')
+        .pipe(plugins.sourcemaps.init())
+        .pipe(plugins.sass())
+        .pipe(plugins.autoprefixer({
+            browsers: options.browsers,
+            remove: true // removes unneeded prefixes from source
+        }))
+        .pipe(plugins.cssmin())
+        .pipe(plugins.header(options.header.join('\n') + '\n'))
+        .pipe(plugins.sourcemaps.write('.'))
+        .pipe(map(function (file, cb) {
+            notifier.notify({
+                title: 'Gulp',
+                message: 'SASS compiled.'
+            });
+            cb(null, file);
+        }))
+        .pipe(gulp.dest('./dist/css'));
 });
 
 gulp.task('watch', function () {
-    gulp.watch('./src/**/*.js', ['js']);
+    gulp.watch('./src/js/**/*.js', ['js']);
+    gulp.watch('./src/css/**/*.scss', ['css']);
 });
 
-gulp.task('default', ['js', 'watch']);
+gulp.task('default', ['js', 'css', 'watch']);
